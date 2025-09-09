@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>PHP & Ajax CRUD</title>
+    <link rel="stylesheet" href="css/style.css" />
+  </head>
+  <body>
+    <table id="main" border="0" cellspacing="0">
+      <tr>
+        <td id="header">
+          <h1>PHP REST API CRUD</h1>
+
+          <div id="search-bar">
+            <label>Search :</label>
+            <input type="text" id="search" autocomplete="off" />
+          </div>
+        </td>
+      </tr>
+      <tr>
+        <td id="table-form">
+          <form id="addForm">
+            Name : <input type="text" name="sname" id="sname" /> Age :
+            <input type="number" name="sage" id="sage" /> City :
+            <input type="text" name="scity" id="scity" />
+            <input type="submit" id="save-button" value="Save" />
+          </form>
+        </td>
+      </tr>
+      <tr>
+        <td id="table-data">
+          <table width="100%" cellpadding="10px">
+            <tr>
+              <th width="40px">Id</th>
+              <th>Name</th>
+              <th width="50px">Age</th>
+              <th width="150px">City</th>
+              <th width="60px">Edit</th>
+              <th width="70px">Delete</th>
+            </tr>
+            <tbody id="load-table">
+              <tr>
+                <td class="center">1</td>
+                <td>Name 1</td>
+                <td>25</td>
+                <td>Delhi</td>
+                <td class="center">
+                  <button class="edit-btn" data-eid="">Edit</button>
+                </td>
+                <td class="center">
+                  <button class="delete-btn" data-id="">Delete</button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </td>
+      </tr>
+    </table>
+
+    <div id="error-message" class="messages"></div>
+    <div id="success-message" class="messages"></div>
+
+    <!-- Popup Modal Box for Update the Records -->
+    <div id="modal">
+      <div id="modal-form">
+        <h2>Edit Form</h2>
+        <form action="" id="edit-form">
+          <table cellpadding="10px" width="100%">
+            <tr>
+              <td width="90px">First Name</td>
+              <td>
+                <input type="text" name="sname" id="edit-name" />
+                <input type="text" name="sid" id="edit-id" hidden="" />
+              </td>
+            </tr>
+            <tr>
+              <td>Age</td>
+              <td><input type="number" name="sage" id="edit-age" /></td>
+            </tr>
+            <tr>
+              <td>City</td>
+              <td><input type="text" name="scity" id="edit-city" /></td>
+            </tr>
+            <tr>
+              <td></td>
+              <td><input type="button" id="edit-submit" value="Update" /></td>
+            </tr>
+          </table>
+        </form>
+        <div id="close-btn">X</div>
+      </div>
+    </div>
+
+    <script type="text/javascript" src="js/jquery.js"></script>
+    <script type="text/javascript">
+      $(document).ready(function () {
+        //Fetch All Records
+        function loadTable() {
+          $.ajax({
+            url: "http://localhost/php-rest-api/api-fetch-all.php",
+            type: "GET",
+            dataType: "json",
+            success: function (data) {
+              $("#load-table").empty();
+
+              if (data.status == false) {
+                $("#load-table").append(
+                  '<tr><td colspan="6" class="center"><h3>' +
+                    data.message +
+                    "</h3></td></tr>"
+                );
+              } else {
+                $.each(data, function (key, value) {
+                  $("#load-table").append(
+                    "<tr>" +
+                      "<td class='center'>" +
+                      value.id +
+                      "</td>" +
+                      "<td>" +
+                      value.student_name +
+                      "</td>" +
+                      "<td class='center'>" +
+                      value.age +
+                      "</td>" +
+                      "<td>" +
+                      value.city +
+                      "</td>" +
+                      "<td class='center'>" +
+                      "<button class='edit-btn' data-eid='" +
+                      value.id +
+                      "'>Edit</button>" +
+                      "</td>" +
+                      "<td class='center'>" +
+                      "<button class='delete-btn' data-id='" +
+                      value.id +
+                      "'>Delete</button>" +
+                      "</td>" +
+                      "</tr>"
+                  );
+                });
+              }
+            },
+            error: function (xhr, status, error) {
+              $("#load-table").empty();
+              if (xhr.status === 404) {
+                $("#load-table").append(
+                  '<tr><td colspan="6" class="center"><h3 style="color: red;">API file not found. Check server setup.</h3></td></tr>'
+                );
+              } else {
+                $("#load-table").append(
+                  '<tr><td colspan="6" class="center"><h3 style="color: red;">Connection Error</h3></td></tr>'
+                );
+              }
+            },
+          });
+        }
+        loadTable();
+
+        //Insert New Record
+
+        //Delete Record
+        //Fetch Single Record : Show in Modal Box
+        $(document).on("click", ".edit-btn", function () {
+          $("#modal").show();
+          var studentId = $(this).data("eid");
+          var obj = { sid: studentId };
+          var myJson = JSON.stringify(obj);
+          $.ajax({
+            url: "http://localhost/php-rest-api/api-fetch-single.php",
+            type: "POST",
+            data: myJson,
+            contentType: "application/json",
+            dataType: "json",
+            success: function (data) {
+              if (data && data.id) {
+                $("#edit-id").val(data.id);
+                $("#edit-name").val(data.student_name);
+                $("#edit-age").val(data.age);
+                $("#edit-city").val(data.city);
+              } else {
+                console.log("No data received or data format incorrect");
+              }
+            },
+          });
+        });
+        //Hide Modal Box
+        $("#close-btn").on("click", function () {
+          $("#modal").hide();
+        });
+
+        //Update Record
+
+        //Live Search Record
+      });
+
+      //Insert New Record
+
+      //Delete Record
+
+      //Fetch Single Record : Show in Modal Box
+
+      //Hide Modal Box
+
+      //Update Record
+
+      //Live Search Record
+    </script>
+  </body>
+</html>

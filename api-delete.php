@@ -15,9 +15,6 @@ require 'config.php';
 
 $stmt = $conn->prepare("DELETE FROM student_tbl WHERE id = :id");
 $stmt->bindParam(":id", $id);
-$stmt->bindParam(":sname", $studentName);
-$stmt->bindParam(":sage", $studentAge);
-$stmt->bindParam(":scity", $studentCity);
 $result = $stmt->execute();
 
 if ($result) {
