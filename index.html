@@ -98,6 +98,7 @@
       $(document).ready(function () {
         //Fetch All Records
         function loadTable() {
+          $("#load-table").html("");
           $.ajax({
             url: "http://localhost/php-rest-api/api-fetch-all.php",
             type: "GET",
@@ -158,9 +159,80 @@
         }
         loadTable();
 
+        // Function for Show Success or Error Message
+        function message(message, status) {
+          if (status == true) {
+            $("#success-message").html(message).slideDown();
+            $("#error-message").slideUp();
+            setTimeout(function () {
+              $("#success-message").slideUp();
+            }, 4000);
+          } else if (status == false) {
+            $("#error-message").html(message).slideDown();
+            $("#success-message").slideUp();
+            setTimeout(function () {
+              $("#error-message").slideUp();
+            }, 4000);
+          }
+        }
+
+        // Function for From Data to JSON Object
+        function jsonData(targetFrom) {
+          var arr = $(targetFrom).serializeArray();
+          var obj = {};
+          for (var a = 0; a < arr.length; a++) {
+            if (arr[a].value == "") {
+              return false;
+            }
+            obj[arr[a].student_name] = arr[a].value;
+          }
+          var jsonString = JSON.stringify(obj);
+          return jsonString;
+        }
+
         //Insert New Record
+        $("#save-button").on("click", function (e) {
+          e.preventDefault();
+          var jsonObject = jsonData("#addFrom");
+          if (jsonObject == false) {
+            message("All Fields are Required.", false);
+          } else {
+            $.ajax({
+              url: "http://localhost/php-rest-api/api-insert.php",
+              type: "POST",
+              data: jsonObject,
+              success: function () {
+                message(data.message, data.status);
+                if (data.status == true) {
+                  loadTable();
+                  $("#addFrom").trigger("reset");
+                }
+              },
+            });
+          }
+        });
 
         //Delete Record
+        $(document).on("click", ".delete-btn", function () {
+          if (confirm("Do you really want to delete this record ?")) {
+            var studentId = $(this).data("id");
+            var obj = { sid: studentId };
+            var myJson = JSON.stringify(obj);
+            var row = this;
+            $.ajax({
+              url: "http://localhost/php-rest-api/api-delete.php",
+              type: "POST",
+              data: myJson,
+              success: function (data) {
+                message(data.message, data.status);
+                if (data.status == true) {
+                  $(row).closest("tr").fadeOut();
+                }
+              },
+            });
+          }
+        });
+
         //Fetch Single Record : Show in Modal Box
         $(document).on("click", ".edit-btn", function () {
           $("#modal").show();
@@ -191,21 +263,47 @@
         });
 
         //Update Record
+        $("#edit-submit").on("click", function (e) {
+          e.preventDefault();
+          var jsonObject = jsonData("#edit-form");
+          if (jsonObject == false) {
+            message("All Fields are Required.", false);
+          } else {
+            $.ajax({
+              url: "http://localhost/php-rest-api/api-update.php",
+              type: "POST",
+              data: jsonObject,
+              success: function () {
+                message(data.message, data.status);
+                if (data.status == true) {
+                  $("#modal").hide();
+                  loadTable();
+                  $("#addFrom").trigger("reset");
+                }
+              },
+            });
+          }
+        });
 
         //Live Search Record
+        $("#search").on("keyup", function () {
+          var searchTerm = $(this).val();
+          $.ajax({
+            url:
+              "http://localhost/php-rest-api/api-search.php?search=" +
+              searchTerm,
+            type: "GET",
+            success: function () {
+              message(data.message, data.status);
+              if (data.status == true) {
+                $("#modal").hide();
+                loadTable();
+                $("#addFrom").trigger("reset");
+              }
+            },
+          });
+        });
       });
-
-      //Insert New Record
-
-      //Delete Record
-
-      //Fetch Single Record : Show in Modal Box
-
-      //Hide Modal Box
-
-      //Update Record
-
-      //Live Search Record
     </script>
   </body>
 </html>
